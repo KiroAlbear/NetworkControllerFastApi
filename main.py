@@ -45,7 +45,7 @@ async def getAllUsers():
 
 
 @app.post('/addNewUser')
-async def addUser(r:UserModel = Depends()):
+async def addUser(r:UserModel):
     query = register.insert().values(
         firstName = r.firstName
     )

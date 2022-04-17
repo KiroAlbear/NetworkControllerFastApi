@@ -1,30 +1,44 @@
+from atexit import register
+import email
+from importlib.metadata import metadata
+from lib2to3.pytree import Base
 import re
+from unicodedata import name
 from fastapi import Depends, FastAPI
-from pydantic import BaseModel
-from model import UserModel
+from DataBaseTables.userTable import UserTable
+from Models.userModel import UserModel
+from Models.userRechargeModel import UserRechargeModel
 import databases
 import sqlalchemy
 
+
+
 DATABASE_URL = "sqlite:///./users.db"
 usersDatabase = databases.Database(DATABASE_URL)
-metaData = sqlalchemy.MetaData()
-register = sqlalchemy.Table(
-    "register",
-    metaData,
-    sqlalchemy.Column("id",sqlalchemy.Integer,primary_key = True),
-    sqlalchemy.Column("firstName",sqlalchemy.String(500))
-)
-engine = sqlalchemy.create_engine(
-    DATABASE_URL,connect_args={"check_same_thread": False}
-)
-metaData.create_all(engine)
+userTable =  UserTable()
+register = userTable.createAndReturnUserTable()
+
+# metaData = sqlalchemy.MetaData()
+# register = sqlalchemy.Table(
+#     "register",
+#     metaData,
+#     sqlalchemy.Column("id",sqlalchemy.Integer,primary_key = True),
+#     sqlalchemy.Column("name",sqlalchemy.String(500)),
+#     sqlalchemy.Column("email",sqlalchemy.String(500)),
+#     sqlalchemy.Column("wallet",sqlalchemy.Integer),
+#     sqlalchemy.Column("phoneNumber",sqlalchemy.String(500)),
+#     sqlalchemy.Column("password",sqlalchemy.String(500)),
+# )
+# engine = sqlalchemy.create_engine(
+#     DATABASE_URL,connect_args={"check_same_thread": False}
+# )
+# metaData.create_all(engine)
 
 
 
 app = FastAPI()
 
-dp:list[UserModel] = [
-]
+dp:list[UserModel] = []
 
 
 @app.on_event("startup")
@@ -43,31 +57,13 @@ async def getAllUsers():
     return allUsers
 
 
-
 @app.post('/addNewUser')
 async def addUser(r:UserModel):
-    query = register.insert().values(
-        firstName = r.firstName
-    )
-    record_id = await usersDatabase.execute(query)
-    query = register.select().where(register.c.id == record_id)
-    row = await usersDatabase.fetch_one(query)
-    return {**row}
+    return await userTable.insertNewUser(r)
 
-    # if(len(dp) == 0):
-    #     dp.append(usermodel)
-
-
-    # else:
-    #     dp.append(UserModel(
-    #         firstName=usermodel.firstName,
-    #         lastname=usermodel.lastname,
-    #         id=dp[dp.count-1].id + 1,
-    #         phoneNumber=usermodel.phoneNumber,
-    #         password=usermodel.password
-    #         ))
-    # return dp
-
+@app.post('/rechargeUserWallet')
+async def addUser(r:UserRechargeModel):
+    return await userTable.rechargeWallet(r)
 
 
 

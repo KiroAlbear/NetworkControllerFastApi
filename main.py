@@ -35,9 +35,6 @@ async def connect():
 async def shutdown():
     await usersDatabase.disconnect()
 
-@app.get("/")
-def root():
-    return {"hello","world"}
 
 @app.get("/Users")
 async def getAllUsers():

@@ -22,7 +22,7 @@ class ProviderTable():
     __systemDatabase = databases.Database(__DATABASE_URL)
     __metaData = sqlalchemy.MetaData()
     tableName = "providers"
-    message_const = "Message"
+
     id_ColumnName = "id"
     name_ColumnName = "name"
     email_ColumnName = "email"
@@ -72,7 +72,7 @@ class ProviderTable():
         else:
             raise HTTPException(
              status_code = 400,
-             detail = "Wrong email or password2"
+             detail = "Wrong email or password"
             )
          
 

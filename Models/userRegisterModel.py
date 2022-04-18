@@ -1,10 +1,9 @@
 
 from pydantic import BaseModel
-from sqlalchemy import Integer
 
 
 
-class UserModel(BaseModel):
+class UserRegisterModel(BaseModel):
     name:str
     email:str
     phoneNumber:str

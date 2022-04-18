@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 
+from pydantic import BaseModel
 class UserRechargeModel(BaseModel):
-    id:str
+    id:int
     rechargeValue:int

@@ -4,12 +4,13 @@ from ast import walk
 import email
 from importlib.metadata import metadata
 from select import select
+from typing_extensions import Self
 from unicodedata import name
 import databases
 from fastapi import Query
 import sqlalchemy
-
-from Models.userModel import UserModel
+from Models.userLoginModel import UserLoginModel
+from Models.userRegisterModel import UserRegisterModel
 from Models.userRechargeModel import UserRechargeModel
 
 
@@ -20,6 +21,7 @@ class UserTable():
     _usersDatabase = databases.Database(__DATABASE_URL)
     __metaData = sqlalchemy.MetaData()
     tableName = "register"
+    message_const = "Message"
     id_ColumnName = "id"
     name_ColumnName = "name"
     email_ColumnName = "email"
@@ -51,7 +53,24 @@ class UserTable():
 
         return register
 
-    async def insertNewUser(self,userModel:UserModel):
+    async def loginUser(self,userloginModel:UserLoginModel):
+        
+        verification_query = "SELECT * FROM register WHERE {}='{}' and {} = '{}'".format(
+
+            self.email_ColumnName,
+            userloginModel.email,
+
+            self.password_ColumnName,
+            userloginModel.password
+        )
+
+        record = await self._usersDatabase.fetch_one(verification_query)
+        if(record != None):
+            return record
+        else:
+           return {self.message_const:"User is not exists"}
+
+    async def insertNewUser(self,userModel:UserRegisterModel):
 
         query = self.__register.insert().values(
         name = userModel.name,
@@ -60,17 +79,31 @@ class UserTable():
         password = userModel.password,
         wallet = userModel.wallet
     )
+        ###################################################################################################
 
-    
-        verification_query = "SELECT * FROM register WHERE {}={}".format(
-            str(self.phoneNumber_ColumnName),
-
-            str(userModel.phoneNumber),
+        phone_verification_query = "SELECT * FROM register WHERE {}= '{}'".format(
+           
+           self.phoneNumber_ColumnName,
+           userModel.phoneNumber,
         )
-        record = await self._usersDatabase.fetch_all(verification_query)
+        phone_verification_record = await self._usersDatabase.fetch_all(phone_verification_query)
+
+        ###################################################################################################
+
+        email_verification_query = "SELECT * FROM register WHERE {}= '{}' ".format(
+           
+           self.email_ColumnName,
+           userModel.email,
+        )
+        email_verification_record = await self._usersDatabase.fetch_all(email_verification_query)
+
+        ###################################################################################################
+        
      
-        if(len(record) > 0):
-            return {"Message":"This Phone Number already exists"}
+        if(len(phone_verification_record) > 0):
+            return {self.message_const:"This Phone Number already exists"}
+        elif(len(email_verification_record) > 0):
+            return {self.message_const:"This Email already exists"}
         else:
            user_id = await self._usersDatabase.execute(query)
            return await self.getUserData(user_id)
@@ -111,3 +144,23 @@ class UserTable():
 
         await self._usersDatabase.execute(query)
         return await self.getUserData(userRechargeModel.id)
+
+
+    async def payWithWallet(self,userRechargeModel:UserRechargeModel):
+        query = "UPDATE {} SET {} = {} - {} WHERE {} = {} and {} > 0".format(
+            self.tableName,
+
+            self.wallet_ColumnName,
+            self.wallet_ColumnName,
+            userRechargeModel.rechargeValue,
+
+            self.id_ColumnName,
+            userRechargeModel.id,
+            self.wallet_ColumnName
+            )
+
+        success = await self._usersDatabase.execute(query)
+        if(success == 1):
+            return await self.getUserData(userRechargeModel.id)
+        else:
+            return{self.message_const:"Insufficient funds"}

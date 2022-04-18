@@ -6,10 +6,11 @@ import re
 from unicodedata import name
 from fastapi import Depends, FastAPI
 from DataBaseTables.userTable import UserTable
-from Models.userModel import UserModel
+from Models.userLoginModel import UserLoginModel
+from Models.userRegisterModel import UserRegisterModel
 from Models.userRechargeModel import UserRechargeModel
 import databases
-import sqlalchemy
+
 
 
 
@@ -38,8 +39,6 @@ register = userTable.createAndReturnUserTable()
 
 app = FastAPI()
 
-dp:list[UserModel] = []
-
 
 @app.on_event("startup")
 async def connect():
@@ -57,13 +56,21 @@ async def getAllUsers():
     return allUsers
 
 
-@app.post('/addNewUser')
-async def addUser(r:UserModel):
+@app.post('/register')
+async def addUser(r:UserRegisterModel):
     return await userTable.insertNewUser(r)
 
+@app.post('/login')
+async def loginUser(r:UserLoginModel):
+    return await userTable.loginUser(r)
+
 @app.post('/rechargeUserWallet')
-async def addUser(r:UserRechargeModel):
+async def rechargeUserWallet(r:UserRechargeModel):
     return await userTable.rechargeWallet(r)
+
+@app.post('/payFromUserWallet')
+async def pay(r:UserRechargeModel):
+    return await userTable.payWithWallet(r)
 
 
 

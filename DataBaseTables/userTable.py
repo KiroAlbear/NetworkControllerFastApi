@@ -68,7 +68,7 @@ class UserTable():
         if(record != None):
             return record
         else:
-           return {self.message_const:"User is not exists"}
+           return {self.message_const:"Wrong email or password"}
 
     async def insertNewUser(self,userModel:UserRegisterModel):
 

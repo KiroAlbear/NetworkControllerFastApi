@@ -1,4 +1,13 @@
+
+from ast import walk
+
+import email
+from importlib.metadata import metadata
+from select import select
+from typing_extensions import Self
+from unicodedata import name
 import databases
+from fastapi import Query
 import sqlalchemy
 from Models.loginModel import LoginModel
 from Models.registerModel import RegisterModel
@@ -7,11 +16,11 @@ from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
 
 
 
-class UserTable():
+class ProviderTable():
     __DATABASE_URL = "sqlite:///./users.db"
     __systemDatabase = databases.Database(__DATABASE_URL)
     __metaData = sqlalchemy.MetaData()
-    tableName = "users"
+    tableName = "providers"
     message_const = "Message"
     id_ColumnName = "id"
     name_ColumnName = "name"
@@ -19,20 +28,20 @@ class UserTable():
     wallet_ColumnName = "wallet"
     phoneNumber_ColumnName = "phoneNumber"
     password_ColumnName = "password"
-    __usersTable = 0
+    __providerTable = 0
 
-    def createAndReturnUserTable(self):
+    def createAndReturnProviderTable(self):
         
-        self.__usersTable = self.__getUsersTable()
-    
+        self.__providerTable = self.__getProviderTable()
+       
         engine = sqlalchemy.create_engine(
         self.__DATABASE_URL,connect_args={"check_same_thread": False}
         )
         self.__metaData.create_all(engine)
-        return self.__usersTable
+        return self.__providerTable
 
-    def __getUsersTable(self):
-        usersTable = sqlalchemy.Table(
+    def __getProviderTable(self):
+        providerTable = sqlalchemy.Table(
         self.tableName,
         self.__metaData,
         sqlalchemy.Column(self.id_ColumnName,sqlalchemy.Integer,primary_key = True),
@@ -42,19 +51,18 @@ class UserTable():
         sqlalchemy.Column(self.phoneNumber_ColumnName,sqlalchemy.String(500)),
         sqlalchemy.Column(self.password_ColumnName,sqlalchemy.String(500)))
 
-        return usersTable
+        return providerTable
 
-    async def loginUser(self,userloginModel:LoginModel):
+    async def loginProvider(self,loginModel:LoginModel):
         
         verification_query = "SELECT * FROM {} WHERE {}='{}' and {} = '{}'".format(
-
             self.tableName,
 
             self.email_ColumnName,
-            userloginModel.email,
+            loginModel.email,
 
             self.password_ColumnName,
-            userloginModel.password
+            loginModel.password
         )
 
         record = await self.__systemDatabase.fetch_one(verification_query)
@@ -63,14 +71,14 @@ class UserTable():
         else:
            return {self.message_const:"Wrong email or password"}
 
-    async def insertNewUser(self,userModel:RegisterModel):
+    async def insertNewProvider(self,registerModel:RegisterModel):
 
-        query = self.__usersTable.insert().values(
-        name = userModel.name,
-        email = userModel.email,
-        phoneNumber = userModel.phoneNumber,
-        password = userModel.password,
-        wallet = userModel.wallet
+        query = self.__providerTable.insert().values(
+        name = registerModel.name,
+        email = registerModel.email,
+        phoneNumber = registerModel.phoneNumber,
+        password = registerModel.password,
+        wallet = registerModel.wallet
     )
         ###################################################################################################
 
@@ -78,7 +86,7 @@ class UserTable():
            self.tableName,
 
            self.phoneNumber_ColumnName,
-           userModel.phoneNumber,
+           registerModel.phoneNumber,
         )
         phone_verification_record = await self.__systemDatabase.fetch_all(phone_verification_query)
 
@@ -88,7 +96,7 @@ class UserTable():
            self.tableName,
 
            self.email_ColumnName,
-           userModel.email,
+           registerModel.email,
         )
         email_verification_record = await self.__systemDatabase.fetch_all(email_verification_query)
 
@@ -100,12 +108,12 @@ class UserTable():
         elif(len(email_verification_record) > 0):
             return {self.message_const:"This Email already exists"}
         else:
-           user_id = await self.__systemDatabase.execute(query)
-           return await self.getUserData(user_id)
+           provider_id = await self.__systemDatabase.execute(query)
+           return await self.getProviderData(provider_id)
     
 
 
-    async def getUserData(self,userId):
+    async def getProviderData(self,provider_id):
 
         query = "SELECT {},{},{},{},{} FROM {} WHERE {}={}".format(
         self.id_ColumnName,
@@ -114,11 +122,11 @@ class UserTable():
         self.wallet_ColumnName,
         self.phoneNumber_ColumnName,
 
-        self.id_ColumnName,
-
         self.tableName,
+
+        self.id_ColumnName,
         
-        userId)
+        provider_id)
         row = await self.__systemDatabase.fetch_one(query)
         return {
             self.id_ColumnName:row[0],
@@ -130,36 +138,36 @@ class UserTable():
 
 
 
-    async def rechargeWallet(self,walletRechargeOrWithdrawModel:WalletRechargeOrWithdrawModel):
+    async def addToWallet(self,providerWalletModel:WalletRechargeOrWithdrawModel):
         query = "UPDATE {} SET {} = {} + {} WHERE {} = {}".format(
             self.tableName,
 
             self.wallet_ColumnName,
             self.wallet_ColumnName,
-            walletRechargeOrWithdrawModel.value,
+            providerWalletModel.value,
             self.id_ColumnName,
-            walletRechargeOrWithdrawModel.id
+            providerWalletModel.id
             )
 
         await self.__systemDatabase.execute(query)
-        return await self.getUserData(walletRechargeOrWithdrawModel.id)
+        return await self.getProviderData(providerWalletModel.id)
 
 
-    async def payWithWallet(self,walletRechargeOrWithdrawModel:WalletRechargeOrWithdrawModel):
+    async def declineFromWallet(self,providerWalletModel:WalletRechargeOrWithdrawModel):
         query = "UPDATE {} SET {} = {} - {} WHERE {} = {} and {} > 0".format(
             self.tableName,
 
             self.wallet_ColumnName,
             self.wallet_ColumnName,
-            walletRechargeOrWithdrawModel.value,
+            providerWalletModel.value,
 
             self.id_ColumnName,
-            walletRechargeOrWithdrawModel.id,
+            providerWalletModel.id,
             self.wallet_ColumnName
             )
 
         success = await self.__systemDatabase.execute(query)
         if(success == 1):
-            return await self.getUserData(walletRechargeOrWithdrawModel.id)
+            return await self.getProviderData(providerWalletModel.id)
         else:
             return{self.message_const:"Insufficient funds"}

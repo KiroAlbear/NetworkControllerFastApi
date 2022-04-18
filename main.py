@@ -6,9 +6,11 @@ import re
 from unicodedata import name
 from fastapi import Depends, FastAPI
 from DataBaseTables.userTable import UserTable
-from Models.userLoginModel import UserLoginModel
-from Models.userRegisterModel import UserRegisterModel
-from Models.userRechargeModel import UserRechargeModel
+from DataBaseTables.providerTable import ProviderTable
+from Models.loginModel import LoginModel
+from Models.registerModel import RegisterModel
+
+from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
 import databases
 
 
@@ -16,8 +18,12 @@ import databases
 
 DATABASE_URL = "sqlite:///./users.db"
 usersDatabase = databases.Database(DATABASE_URL)
-userTable =  UserTable()
-register = userTable.createAndReturnUserTable()
+
+userTableFunctions =  UserTable()
+providerTableFunctions =  ProviderTable()
+
+usersTable = userTableFunctions.createAndReturnUserTable()
+providerTables = providerTableFunctions.createAndReturnProviderTable()
 
 # metaData = sqlalchemy.MetaData()
 # register = sqlalchemy.Table(
@@ -48,29 +54,49 @@ async def connect():
 async def shutdown():
     await usersDatabase.disconnect()
 
+## User APIS
+######################################################################################
 
-@app.get("/Users")
-async def getAllUsers():
-    query =  register.select()
-    allUsers = await usersDatabase.fetch_all(query)
-    return allUsers
+# @app.get("/Users")
+# async def getAllUsers():
+#     query =  register.select()
+#     allUsers = await usersDatabase.fetch_all(query)
+#     return allUsers
 
 
-@app.post('/register')
-async def addUser(r:UserRegisterModel):
-    return await userTable.insertNewUser(r)
+@app.post('/registerUser')
+async def addUser(r:RegisterModel):
+    return await userTableFunctions.insertNewUser(r)
 
-@app.post('/login')
-async def loginUser(r:UserLoginModel):
-    return await userTable.loginUser(r)
+@app.post('/loginUser')
+async def loginUser(r:LoginModel):
+    return await userTableFunctions.loginUser(r)
 
-@app.post('/rechargeUserWallet')
-async def rechargeUserWallet(r:UserRechargeModel):
-    return await userTable.rechargeWallet(r)
+@app.post('/addToUserWallet')
+async def rechargeUserWallet(r:WalletRechargeOrWithdrawModel):
+    return await userTableFunctions.rechargeWallet(r)
 
-@app.post('/payFromUserWallet')
-async def pay(r:UserRechargeModel):
-    return await userTable.payWithWallet(r)
+@app.post('/withdrawFromUserWallet')
+async def pay(r:WalletRechargeOrWithdrawModel):
+    return await userTableFunctions.payWithWallet(r)
 
+## Provider APIS
+######################################################################################
+
+@app.post('/registerProvider')
+async def addUser(r:RegisterModel):
+    return await providerTableFunctions.insertNewProvider(r)
+
+@app.post('/loginProvider')
+async def loginUser(r:LoginModel):
+    return await providerTableFunctions.loginProvider(r)
+
+@app.post('/addToProviderWallet')
+async def rechargeUserWallet(r:WalletRechargeOrWithdrawModel):
+    return await providerTableFunctions.addToWallet(r)
+
+@app.post('/withdrawFromProviderWallet')
+async def pay(r:WalletRechargeOrWithdrawModel):
+    return await providerTableFunctions.declineFromWallet(r)
 
 

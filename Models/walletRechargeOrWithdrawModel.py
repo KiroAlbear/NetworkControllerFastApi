@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 from pydantic import BaseModel
-class UserRechargeModel(BaseModel):
+
+class WalletRechargeOrWithdrawModel(BaseModel):
     id:int
-    rechargeValue:int
+    value:int

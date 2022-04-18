@@ -1,6 +1,6 @@
 
 from ast import walk
-
+from fastapi import HTTPException
 import email
 from importlib.metadata import metadata
 from select import select
@@ -10,6 +10,7 @@ import databases
 from fastapi import Query
 import sqlalchemy
 from Models.loginModel import LoginModel
+
 from Models.registerModel import RegisterModel
 from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
 
@@ -69,7 +70,11 @@ class ProviderTable():
         if(record != None):
             return record
         else:
-           return {self.message_const:"Wrong email or password"}
+            raise HTTPException(
+             status_code = 400,
+             detail = "Wrong email or password2"
+            )
+         
 
     async def insertNewProvider(self,registerModel:RegisterModel):
 
@@ -104,9 +109,16 @@ class ProviderTable():
         
      
         if(len(phone_verification_record) > 0):
-            return {self.message_const:"This Phone Number already exists"}
+            raise HTTPException(
+             status_code = 400,
+             detail = "This Phone Number already exists"
+            )
+          
         elif(len(email_verification_record) > 0):
-            return {self.message_const:"This Email already exists"}
+            raise HTTPException(
+             status_code = 400,
+             detail = "This Email already exists"
+            )
         else:
            provider_id = await self.__systemDatabase.execute(query)
            return await self.getProviderData(provider_id)
@@ -170,4 +182,7 @@ class ProviderTable():
         if(success == 1):
             return await self.getProviderData(providerWalletModel.id)
         else:
-            return{self.message_const:"Insufficient funds"}
+            raise HTTPException(
+             status_code = 400,
+             detail = "Insufficient funds"
+            )

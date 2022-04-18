@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 import databases
 import sqlalchemy
 from Models.loginModel import LoginModel
@@ -12,7 +13,6 @@ class UserTable():
     __systemDatabase = databases.Database(__DATABASE_URL)
     __metaData = sqlalchemy.MetaData()
     tableName = "users"
-    message_const = "Message"
     id_ColumnName = "id"
     name_ColumnName = "name"
     email_ColumnName = "email"
@@ -61,7 +61,10 @@ class UserTable():
         if(record != None):
             return record
         else:
-           return {self.message_const:"Wrong email or password"}
+            raise HTTPException(
+             status_code = 400,
+             detail = "Wrong email or password2"
+            )
 
     async def insertNewUser(self,userModel:RegisterModel):
 
@@ -96,9 +99,17 @@ class UserTable():
         
      
         if(len(phone_verification_record) > 0):
-            return {self.message_const:"This Phone Number already exists"}
+            raise HTTPException(
+             status_code = 400,
+             detail = "This Phone Number already exists"
+            )
+
         elif(len(email_verification_record) > 0):
-            return {self.message_const:"This Email already exists"}
+            raise HTTPException(
+             status_code = 400,
+             detail = "This Email already exists"
+            )
+        
         else:
            user_id = await self.__systemDatabase.execute(query)
            return await self.getUserData(user_id)
@@ -162,4 +173,7 @@ class UserTable():
         if(success == 1):
             return await self.getUserData(walletRechargeOrWithdrawModel.id)
         else:
-            return{self.message_const:"Insufficient funds"}
+            raise HTTPException(
+             status_code = 400,
+             detail = "Insufficient funds"
+            )

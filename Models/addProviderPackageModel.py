@@ -1,7 +1,8 @@
 from pydantic import BaseModel
 
 
-class ProviderPackageModel(BaseModel):
+from pydantic import BaseModel
+class AddProviderPackageModel(BaseModel):
     providerId:int
     price:int
     sizeMB:int

@@ -5,9 +5,12 @@ from lib2to3.pytree import Base
 import re
 from unicodedata import name
 from fastapi import Depends, FastAPI
+from DataBaseTables.providerPackagesTable import ProviderPackagesTable
 from DataBaseTables.userTable import UserTable
 from DataBaseTables.providerTable import ProviderTable
+from Models.getProviderPackageModel import GetProviderPackageModel
 from Models.loginModel import LoginModel
+from Models.addProviderPackageModel import AddProviderPackageModel
 from Models.registerModel import RegisterModel
 
 from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
@@ -21,9 +24,12 @@ usersDatabase = databases.Database(DATABASE_URL)
 
 userTableFunctions =  UserTable()
 providerTableFunctions =  ProviderTable()
+providerPackagesTableFunctions =  ProviderPackagesTable()
 
-usersTable = userTableFunctions.createAndReturnUserTable()
-providerTables = providerTableFunctions.createAndReturnProviderTable()
+
+userTableFunctions.createAndReturnUserTable()
+providerTableFunctions.createAndReturnProviderTable()
+providerPackagesTableFunctions.createAndReturnProviderTable()
 
 # metaData = sqlalchemy.MetaData()
 # register = sqlalchemy.Table(
@@ -98,5 +104,14 @@ async def rechargeUserWallet(r:WalletRechargeOrWithdrawModel):
 @app.post('/withdrawFromProviderWallet')
 async def pay(r:WalletRechargeOrWithdrawModel):
     return await providerTableFunctions.declineFromWallet(r)
+
+
+@app.post('/addProviderPackage')
+async def pay(r:AddProviderPackageModel):
+    return await providerPackagesTableFunctions.insertPackage(r)
+
+@app.get('/getProviderPackages')
+async def pay(r:GetProviderPackageModel):
+    return await providerPackagesTableFunctions.getProviderPackageData(r)
 
 

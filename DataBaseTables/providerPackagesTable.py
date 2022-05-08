@@ -1,8 +1,8 @@
-from http.client import HTTPException
+from fastapi import HTTPException
 import databases
 import sqlalchemy
 from DataBaseTables.providerTable import ProviderTable
-from Models.providerPackageModel import ProviderPackageModel
+from Models.addProviderPackageModel import AddProviderPackageModel
 
 
 class ProviderPackagesTable():
@@ -37,7 +37,7 @@ class ProviderPackagesTable():
         self.tableName,
         self.__metaData,
         sqlalchemy.Column(self.id_ColumnName,sqlalchemy.Integer,primary_key = True),
-        sqlalchemy.Column(self.myProviderTableId_ColumnName,sqlalchemy.String(500)),
+        sqlalchemy.Column(self.myProviderTableId_ColumnName,sqlalchemy.Integer),
         sqlalchemy.Column(self.price_ColumnName,sqlalchemy.Integer),
         sqlalchemy.Column(self.size_ColumnName,sqlalchemy.Integer))
 
@@ -55,16 +55,19 @@ class ProviderPackagesTable():
         self.myProviderTableId_ColumnName,
         provider_id)
 
-        row = await self.__systemDatabase.fetch_one(query)
-        return {
-            self.id_ColumnName:row[0],
-            self.myProviderTableId_ColumnName:row[1],
-            self.price_ColumnName:row[2],
-            self.size_ColumnName:row[3]
-        }
+        row = await self.__systemDatabase.fetch_all(query)
+        packagesList = []
+        for i in row:
+            asd = {self.id_ColumnName:i[0],
+            self.myProviderTableId_ColumnName:i[1],
+            self.price_ColumnName:i[2],
+            self.size_ColumnName:i[3]}
+
+            packagesList.append(asd)
+        return packagesList
 
 
-    async def insertPackage(self,providerPackageModel:ProviderPackageModel):
+    async def insertPackage(self,providerPackageModel:AddProviderPackageModel):
         providerIdExistance_verification_query = "SELECT * FROM {} WHERE {}= '{}'".format(
            self.providerTableName,
 
@@ -72,17 +75,28 @@ class ProviderPackagesTable():
            providerPackageModel.providerId,
         )
         provider_record = await self.__systemDatabase.fetch_all(providerIdExistance_verification_query)
+        provider_packages = await self.getProviderPackageData(providerPackageModel.providerId)
 
         if(len(provider_record) == 0):
             raise HTTPException(
              status_code = 400,
              detail = "The provider is not exist"
             )
+        elif(len(provider_packages) > 10 ):
+            raise HTTPException(
+             status_code = 400,
+             detail = "The maximum limit of packages is reached, please edit or remove some packages"
+            )
         else:
             insert_package_query = self.__providerPackagesTable.insert().values(
-                providerPackageModel.providerId,
-                providerPackageModel.price,
-                providerPackageModel.sizeMB
+                providerId = providerPackageModel.providerId,
+                price = providerPackageModel.price,
+                size = providerPackageModel.sizeMB
             )
             package_id = await self.__systemDatabase.execute(insert_package_query)
-            return await self.getProviderData(providerPackageModel.providerId)
+            return await self.getProviderPackageData(providerPackageModel.providerId)
+
+    # async def dropTable(self):
+    #     query = "DROP TABLE providersPackages;"
+    #     asd = await self.__systemDatabase.execute(query)
+    #     return asd

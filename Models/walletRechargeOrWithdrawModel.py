@@ -4,5 +4,5 @@ from pydantic import BaseModel
 from pydantic import BaseModel
 
 class WalletRechargeOrWithdrawModel(BaseModel):
-    id:int
+    id:int 
     value:int

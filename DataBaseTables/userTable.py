@@ -63,7 +63,7 @@ class UserTable():
         else:
             raise HTTPException(
              status_code = 400,
-             detail = "Wrong email or password2"
+             detail = "Wrong email or password"
             )
 
     async def insertNewUser(self,userModel:RegisterModel):

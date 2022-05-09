@@ -3,6 +3,8 @@ import databases
 import sqlalchemy
 from DataBaseTables.providerTable import ProviderTable
 from Models.addProviderPackageModel import AddProviderPackageModel
+from Models.deleteProviderPackageModel import DeleteProviderPackageModel
+from Models.editProviderPackageModel import EditProviderPackageModel
 
 
 class ProviderPackagesTable():
@@ -100,3 +102,46 @@ class ProviderPackagesTable():
     #     query = "DROP TABLE providersPackages;"
     #     asd = await self.__systemDatabase.execute(query)
     #     return asd
+
+    async def updatePackage(self,editProviderPackageModel:EditProviderPackageModel):
+        query = "UPDATE {} SET {} = {}, {} = {} WHERE {} = {}".format(
+            self.tableName,
+
+            self.price_ColumnName,
+            editProviderPackageModel.newPrice,
+
+            self.size_ColumnName,
+            editProviderPackageModel.newSizeMB,
+
+            self.id_ColumnName,
+            editProviderPackageModel.packageId
+
+            )
+
+        success = await self.__systemDatabase.execute(query)
+        if(success == 1):
+            return await self.getProviderPackageData(editProviderPackageModel.packageId)
+        else:
+            raise HTTPException(
+             status_code = 400,
+             detail = "Cannot update this package"
+            )
+
+    async def deletePackage(self,deleteProviderPackageModel:DeleteProviderPackageModel):
+        query = "DELETE FROM {} WHERE {} = {}".format(
+            self.tableName,
+
+
+            self.id_ColumnName,
+            deleteProviderPackageModel.packageId
+
+            )
+
+        success = await self.__systemDatabase.execute(query)
+        if(success == 1):
+            return await self.getProviderPackageData(deleteProviderPackageModel.packageId)
+        else:
+            raise HTTPException(
+             status_code = 400,
+             detail = "Cannot delete this package"
+            )

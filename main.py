@@ -8,6 +8,8 @@ from fastapi import Depends, FastAPI
 from DataBaseTables.providerPackagesTable import ProviderPackagesTable
 from DataBaseTables.userTable import UserTable
 from DataBaseTables.providerTable import ProviderTable
+from Models.deleteProviderPackageModel import DeleteProviderPackageModel
+from Models.editProviderPackageModel import EditProviderPackageModel
 from Models.getProviderPackageModel import GetProviderPackageModel
 from Models.loginModel import LoginModel
 from Models.addProviderPackageModel import AddProviderPackageModel
@@ -107,11 +109,19 @@ async def pay(r:WalletRechargeOrWithdrawModel):
 
 
 @app.post('/addProviderPackage')
-async def pay(r:AddProviderPackageModel):
+async def addProviderPackage(r:AddProviderPackageModel):
     return await providerPackagesTableFunctions.insertPackage(r)
 
 @app.get('/getProviderPackages')
-async def pay(r:GetProviderPackageModel):
+async def getProviderPackages(r:GetProviderPackageModel):
     return await providerPackagesTableFunctions.getProviderPackageData(r)
+
+@app.post('/updateProviderPackage')
+async def updateProviderPackage(r:EditProviderPackageModel):
+    return await providerPackagesTableFunctions.updatePackage(r)
+
+@app.get('/deleteProviderPackage')
+async def updateProviderPackage(r:DeleteProviderPackageModel):
+    return await providerPackagesTableFunctions.deletePackage(r)
 
 

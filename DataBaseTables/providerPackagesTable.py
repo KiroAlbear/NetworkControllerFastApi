@@ -139,7 +139,7 @@ class ProviderPackagesTable():
 
         success = await self.__systemDatabase.execute(query)
         if(success == 1):
-            return await self.getProviderPackageData(deleteProviderPackageModel.packageId)
+            return await self.getProviderPackageData(deleteProviderPackageModel.providerId)
         else:
             raise HTTPException(
              status_code = 400,

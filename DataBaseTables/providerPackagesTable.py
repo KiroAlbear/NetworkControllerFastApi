@@ -45,7 +45,7 @@ class ProviderPackagesTable():
 
         return providerPackagesTable
 
-    async def getProviderPackageData(self,provider_id):
+    async def getProviderPackageData(self,provider_id:int):
         query = "SELECT {},{},{},{} FROM {} WHERE {}={}".format(
         self.id_ColumnName,
         self.myProviderTableId_ColumnName,
@@ -120,7 +120,7 @@ class ProviderPackagesTable():
 
         success = await self.__systemDatabase.execute(query)
         if(success == 1):
-            return await self.getProviderPackageData(editProviderPackageModel.packageId)
+            return await self.getProviderPackageData(editProviderPackageModel.providerId)
         else:
             raise HTTPException(
              status_code = 400,

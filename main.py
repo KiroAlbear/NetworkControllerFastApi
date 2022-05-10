@@ -112,15 +112,15 @@ async def pay(r:WalletRechargeOrWithdrawModel):
 async def addProviderPackage(r:AddProviderPackageModel):
     return await providerPackagesTableFunctions.insertPackage(r)
 
-@app.get('/getProviderPackages')
-async def getProviderPackages(r:GetProviderPackageModel):
-    return await providerPackagesTableFunctions.getProviderPackageData(r)
+@app.get('/getProviderPackages/{provider_id}')
+async def getProviderPackages(provider_id:int):
+    return await providerPackagesTableFunctions.getProviderPackageData(provider_id)
 
 @app.post('/updateProviderPackage')
 async def updateProviderPackage(r:EditProviderPackageModel):
     return await providerPackagesTableFunctions.updatePackage(r)
 
-@app.get('/deleteProviderPackage')
+@app.post('/deleteProviderPackage')
 async def updateProviderPackage(r:DeleteProviderPackageModel):
     return await providerPackagesTableFunctions.deletePackage(r)
 

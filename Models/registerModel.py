@@ -7,5 +7,4 @@ class RegisterModel(BaseModel):
     email:str
     phoneNumber:str
     password:str
-    wallet:int
 

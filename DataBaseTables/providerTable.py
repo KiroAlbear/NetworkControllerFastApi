@@ -83,7 +83,7 @@ class ProviderTable():
         email = registerModel.email,
         phoneNumber = registerModel.phoneNumber,
         password = registerModel.password,
-        wallet = registerModel.wallet
+        wallet = 0
     )
         ###################################################################################################
 

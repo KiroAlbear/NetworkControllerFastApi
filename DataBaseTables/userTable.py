@@ -67,13 +67,12 @@ class UserTable():
             )
 
     async def insertNewUser(self,userModel:RegisterModel):
-
         query = self.__usersTable.insert().values(
         name = userModel.name,
         email = userModel.email,
         phoneNumber = userModel.phoneNumber,
         password = userModel.password,
-        wallet = userModel.wallet
+        wallet = 0
     )
         ###################################################################################################
 

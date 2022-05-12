@@ -124,9 +124,9 @@ class UserTable():
         self.wallet_ColumnName,
         self.phoneNumber_ColumnName,
 
-        self.id_ColumnName,
-
         self.tableName,
+
+        self.id_ColumnName,
         
         userId)
         row = await self.__systemDatabase.fetch_one(query)

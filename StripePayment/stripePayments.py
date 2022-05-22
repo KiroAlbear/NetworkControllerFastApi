@@ -11,7 +11,7 @@ class StripePayments():
 
         try:
             intent = stripe.PaymentIntent.create(
-                 amount= 199,
+                 amount= 800,
                  currency= 'EGP')
 
             # Send PaymentIntent details to the front end.

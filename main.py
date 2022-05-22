@@ -18,6 +18,10 @@ from Models.registerModel import RegisterModel
 from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
 import databases
 
+from StripePayment.stripePayments import StripePayments
+
+
+
 
 
 
@@ -27,6 +31,8 @@ usersDatabase = databases.Database(DATABASE_URL)
 userTableFunctions =  UserTable()
 providerTableFunctions =  ProviderTable()
 providerPackagesTableFunctions =  ProviderPackagesTable()
+
+stripePayment = StripePayments()
 
 
 userTableFunctions.createAndReturnUserTable()
@@ -71,6 +77,9 @@ async def shutdown():
 #     allUsers = await usersDatabase.fetch_all(query)
 #     return allUsers
 
+@app.post('/create-payment-intent')
+async def getStripeClientSecret():
+    return stripePayment.getClientSecret()
 
 @app.post('/registerUser')
 async def addUser(r:RegisterModel):

@@ -2,7 +2,7 @@ from fastapi import HTTPException
 import databases
 import sqlalchemy
 from Models.loginModel import LoginModel
-from Models.registerModel import RegisterModel
+from Models.registerUserModel import RegisterUserModel
 from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
 
 
@@ -66,7 +66,7 @@ class UserTable():
              detail = "Wrong email or password"
             )
 
-    async def insertNewUser(self,userModel:RegisterModel):
+    async def insertNewUser(self,userModel:RegisterUserModel):
         query = self.__usersTable.insert().values(
         name = userModel.name,
         email = userModel.email,

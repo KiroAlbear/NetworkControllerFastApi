@@ -11,7 +11,7 @@ from fastapi import Query
 import sqlalchemy
 from Models.loginModel import LoginModel
 
-from Models.registerModel import RegisterModel
+from Models.registerProviderModel import RegisterProviderModel
 from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
 
 
@@ -24,13 +24,19 @@ class ProviderTable():
     tableName = "providers"
 
     id_ColumnName = "id"
+    uuid_ColumnName = "uuid"
     name_ColumnName = "name"
     email_ColumnName = "email"
     wallet_ColumnName = "wallet"
     phoneNumber_ColumnName = "phoneNumber"
     password_ColumnName = "password"
+
     __providerTable = 0
 
+    async def deleteProviderTable(self):
+        query = "DROP Table 'providers'"
+        return await self.__systemDatabase.execute(query)
+         
     def createAndReturnProviderTable(self):
         
         self.__providerTable = self.__getProviderTable()
@@ -46,6 +52,7 @@ class ProviderTable():
         self.tableName,
         self.__metaData,
         sqlalchemy.Column(self.id_ColumnName,sqlalchemy.Integer,primary_key = True),
+        sqlalchemy.Column(self.uuid_ColumnName,sqlalchemy.String,),
         sqlalchemy.Column(self.name_ColumnName,sqlalchemy.String(500)),
         sqlalchemy.Column(self.email_ColumnName,sqlalchemy.String(500)),
         sqlalchemy.Column(self.wallet_ColumnName,sqlalchemy.Integer),
@@ -76,15 +83,16 @@ class ProviderTable():
             )
          
 
-    async def insertNewProvider(self,registerModel:RegisterModel):
+    async def insertNewProvider(self,registerModel:RegisterProviderModel):
 
         query = self.__providerTable.insert().values(
+        uuid = registerModel.uuid,
         name = registerModel.name,
         email = registerModel.email,
         phoneNumber = registerModel.phoneNumber,
         password = registerModel.password,
         wallet = 0
-    )
+    ) 
         ###################################################################################################
 
         phone_verification_query = "SELECT * FROM {} WHERE {}= '{}'".format(
@@ -106,19 +114,34 @@ class ProviderTable():
         email_verification_record = await self.__systemDatabase.fetch_all(email_verification_query)
 
         ###################################################################################################
-        
+
+        uuid_verification_query = "SELECT * FROM {} WHERE {}= '{}' ".format(
+           self.tableName,
+
+           self.uuid_ColumnName,
+           registerModel.uuid,
+        )
+        uuid_verification_record = await self.__systemDatabase.fetch_all(uuid_verification_query)
+
+        ###################################################################################################
+
+        if(len(uuid_verification_record) > 0):
+            raise HTTPException(
+             status_code = 400,
+             detail = "This uuid Number already exists"
+            )
      
-        if(len(phone_verification_record) > 0):
-            raise HTTPException(
-             status_code = 400,
-             detail = "This Phone Number already exists"
-            )
+        # elif(len(phone_verification_record) > 0):
+        #     raise HTTPException(
+        #      status_code = 400,
+        #      detail = "This Phone Number already exists"
+        #     )
           
-        elif(len(email_verification_record) > 0):
-            raise HTTPException(
-             status_code = 400,
-             detail = "This Email already exists"
-            )
+        # elif(len(email_verification_record) > 0):
+        #     raise HTTPException(
+        #      status_code = 400,
+        #      detail = "This Email already exists"
+        #     )
         else:
            provider_id = await self.__systemDatabase.execute(query)
            return await self.getProviderData(provider_id)

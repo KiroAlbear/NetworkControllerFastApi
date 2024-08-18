@@ -13,12 +13,13 @@ from Models.editProviderPackageModel import EditProviderPackageModel
 from Models.getProviderPackageModel import GetProviderPackageModel
 from Models.loginModel import LoginModel
 from Models.addProviderPackageModel import AddProviderPackageModel
-from Models.registerModel import RegisterModel
+from Models.registerUserModel import RegisterUserModel
+from Models.registerProviderModel import RegisterProviderModel
 
 from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
 import databases
 
-from StripePayment.stripePayments import StripePayments
+# from StripePayment.stripePayments import StripePayments
 
 
 
@@ -32,7 +33,7 @@ userTableFunctions =  UserTable()
 providerTableFunctions =  ProviderTable()
 providerPackagesTableFunctions =  ProviderPackagesTable()
 
-stripePayment = StripePayments()
+# stripePayment = StripePayments()
 
 
 userTableFunctions.createAndReturnUserTable()
@@ -77,17 +78,19 @@ async def shutdown():
 #     allUsers = await usersDatabase.fetch_all(query)
 #     return allUsers
 
-@app.post('/create-payment-intent')
-async def getStripeClientSecret():
-    return stripePayment.getClientSecret()
+# @app.post('/create-payment-intent')
+# async def getStripeClientSecret():
+#     return stripePayment.getClientSecret()
 
 @app.post('/registerUser')
-async def addUser(r:RegisterModel):
+async def addUser(r:RegisterUserModel):
     return await userTableFunctions.insertNewUser(r)
 
 @app.post('/loginUser')
 async def loginUser(r:LoginModel):
     return await userTableFunctions.loginUser(r)
+
+
 
 @app.post('/addToUserWallet')
 async def rechargeUserWallet(r:WalletRechargeOrWithdrawModel):
@@ -101,8 +104,9 @@ async def pay(r:WalletRechargeOrWithdrawModel):
 ######################################################################################
 
 @app.post('/registerProvider')
-async def addUser(r:RegisterModel):
+async def addUser(r:RegisterProviderModel):
     return await providerTableFunctions.insertNewProvider(r)
+
 
 @app.post('/loginProvider')
 async def loginUser(r:LoginModel):
@@ -111,6 +115,10 @@ async def loginUser(r:LoginModel):
 @app.post('/addToProviderWallet')
 async def rechargeUserWallet(r:WalletRechargeOrWithdrawModel):
     return await providerTableFunctions.addToWallet(r)
+
+@app.post('/deleteProviderTable')
+async def deleteProviderTable():
+    return await providerTableFunctions.deleteProviderTable()
 
 @app.post('/withdrawFromProviderWallet')
 async def pay(r:WalletRechargeOrWithdrawModel):

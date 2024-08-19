@@ -68,13 +68,13 @@ providerConnectedUsersTableFunctions.createAndReturnProviderConnectedUsersTable(
 app = FastAPI()
 
 
-@app.on_event("startup")
-async def connect():
-    await usersDatabase.connect()
+# @app.on_event("startup")
+# async def connect():
+#     await usersDatabase.connect()
 
-@app.on_event("shutdown")
-async def shutdown():
-    await usersDatabase.disconnect()
+# @app.on_event("shutdown")
+# async def shutdown():
+#     await usersDatabase.disconnect()
 
 ## User APIS
 ######################################################################################

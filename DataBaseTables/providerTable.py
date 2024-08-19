@@ -13,15 +13,16 @@ from Models.loginModel import LoginModel
 
 from Models.registerProviderModel import RegisterProviderModel
 from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
-
-
+from DataBaseUtils.dataBaseCredintials import DataBaseCredentials
+from DataBaseUtils.dataBaseCommonFunction import DataBaseCommonFunctions
 
 
 class ProviderTable():
-    __DATABASE_URL = "sqlite:///./users.db"
-    __systemDatabase = databases.Database(__DATABASE_URL)
-    __metaData = sqlalchemy.MetaData()
-    tableName = "providers"
+
+    dataBaseCred = DataBaseCredentials()
+    providerTableName = "providers"
+    
+    
 
     id_ColumnName = "id"
     uuid_ColumnName = "uuid"
@@ -32,25 +33,21 @@ class ProviderTable():
     password_ColumnName = "password"
 
     __providerTable = 0
+    __dataBaseCommonFunctions = DataBaseCommonFunctions()
 
     async def deleteProviderTable(self):
         query = "DROP Table 'providers'"
-        return await self.__systemDatabase.execute(query)
+        return await self.dataBaseCred.systemDatabase.execute(query)
          
     def createAndReturnProviderTable(self):
-        
-        self.__providerTable = self.__getProviderTable()
-       
-        engine = sqlalchemy.create_engine(
-        self.__DATABASE_URL,connect_args={"check_same_thread": False}
-        )
-        self.__metaData.create_all(engine)
+        self.__providerTable = self.__dataBaseCommonFunctions.createTable(self.__getProviderTable)
         return self.__providerTable
-
+    
+    
     def __getProviderTable(self):
         providerTable = sqlalchemy.Table(
-        self.tableName,
-        self.__metaData,
+        self.providerTableName,
+        self.dataBaseCred.metaData,
         sqlalchemy.Column(self.id_ColumnName,sqlalchemy.Integer,primary_key = True),
         sqlalchemy.Column(self.uuid_ColumnName,sqlalchemy.String,),
         sqlalchemy.Column(self.name_ColumnName,sqlalchemy.String(500)),
@@ -60,11 +57,13 @@ class ProviderTable():
         sqlalchemy.Column(self.password_ColumnName,sqlalchemy.String(500)))
 
         return providerTable
+    
+
 
     async def loginProvider(self,loginModel:LoginModel):
         
         verification_query = "SELECT * FROM {} WHERE {}='{}' and {} = '{}'".format(
-            self.tableName,
+            self.providerTableName,
 
             self.email_ColumnName,
             loginModel.email,
@@ -73,7 +72,7 @@ class ProviderTable():
             loginModel.password
         )
 
-        record = await self.__systemDatabase.fetch_one(verification_query)
+        record = await self.dataBaseCred.systemDatabase.fetch_one(verification_query)
         if(record != None):
             return record
         else:
@@ -96,32 +95,32 @@ class ProviderTable():
         ###################################################################################################
 
         phone_verification_query = "SELECT * FROM {} WHERE {}= '{}'".format(
-           self.tableName,
+           self.providerTableName,
 
            self.phoneNumber_ColumnName,
            registerModel.phoneNumber,
         )
-        phone_verification_record = await self.__systemDatabase.fetch_all(phone_verification_query)
+        phone_verification_record = await self.dataBaseCred.systemDatabase.fetch_all(phone_verification_query)
 
         ###################################################################################################
 
         email_verification_query = "SELECT * FROM {} WHERE {}= '{}' ".format(
-           self.tableName,
+           self.providerTableName,
 
            self.email_ColumnName,
            registerModel.email,
         )
-        email_verification_record = await self.__systemDatabase.fetch_all(email_verification_query)
+        email_verification_record = await self.dataBaseCred.systemDatabase.fetch_all(email_verification_query)
 
         ###################################################################################################
 
         uuid_verification_query = "SELECT * FROM {} WHERE {}= '{}' ".format(
-           self.tableName,
+           self.providerTableName,
 
            self.uuid_ColumnName,
            registerModel.uuid,
         )
-        uuid_verification_record = await self.__systemDatabase.fetch_all(uuid_verification_query)
+        uuid_verification_record = await self.dataBaseCred.systemDatabase.fetch_all(uuid_verification_query)
 
         ###################################################################################################
 
@@ -143,7 +142,7 @@ class ProviderTable():
         #      detail = "This Email already exists"
         #     )
         else:
-           provider_id = await self.__systemDatabase.execute(query)
+           provider_id = await self.dataBaseCred.systemDatabase.execute(query)
            return await self.getProviderData(provider_id)
     
 
@@ -157,12 +156,12 @@ class ProviderTable():
         self.wallet_ColumnName,
         self.phoneNumber_ColumnName,
 
-        self.tableName,
+        self.providerTableName,
 
         self.id_ColumnName,
         
         provider_id)
-        row = await self.__systemDatabase.fetch_one(query)
+        row = await self.dataBaseCred.systemDatabase.fetch_one(query)
         return {
             self.id_ColumnName:row[0],
             self.name_ColumnName:row[1],
@@ -175,7 +174,7 @@ class ProviderTable():
 
     async def addToWallet(self,providerWalletModel:WalletRechargeOrWithdrawModel):
         query = "UPDATE {} SET {} = {} + {} WHERE {} = {}".format(
-            self.tableName,
+            self.providerTableName,
 
             self.wallet_ColumnName,
             self.wallet_ColumnName,
@@ -184,13 +183,13 @@ class ProviderTable():
             providerWalletModel.id
             )
 
-        await self.__systemDatabase.execute(query)
+        await self.dataBaseCred.systemDatabase.execute(query)
         return await self.getProviderData(providerWalletModel.id)
 
 
     async def declineFromWallet(self,providerWalletModel:WalletRechargeOrWithdrawModel):
         query = "UPDATE {} SET {} = {} - {} WHERE {} = {} and {} > 0".format(
-            self.tableName,
+            self.providerTableName,
 
             self.wallet_ColumnName,
             self.wallet_ColumnName,
@@ -201,7 +200,7 @@ class ProviderTable():
             self.wallet_ColumnName
             )
 
-        success = await self.__systemDatabase.execute(query)
+        success = await self.dataBaseCred.systemDatabase.execute(query)
         if(success == 1):
             return await self.getProviderData(providerWalletModel.id)
         else:

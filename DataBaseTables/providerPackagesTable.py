@@ -5,14 +5,14 @@ from DataBaseTables.providerTable import ProviderTable
 from Models.addProviderPackageModel import AddProviderPackageModel
 from Models.deleteProviderPackageModel import DeleteProviderPackageModel
 from Models.editProviderPackageModel import EditProviderPackageModel
+from DataBaseUtils.dataBaseCredintials import DataBaseCredentials
 
 
 class ProviderPackagesTable():
-    __DATABASE_URL = "sqlite:///./users.db"
-    __systemDatabase = databases.Database(__DATABASE_URL)
-    __metaData = sqlalchemy.MetaData()
+
+    dataBaseCred = DataBaseCredentials()
     tableName = "providersPackages"
-    providerTableName = ProviderTable().tableName
+    providerTableName = ProviderTable().providerTableName
     providerTableId_ColumnName = ProviderTable().id_ColumnName
 
 
@@ -27,9 +27,9 @@ class ProviderPackagesTable():
         self.__providerPackagesTable = self.__getProviderPackagesTable()
        
         engine = sqlalchemy.create_engine(
-        self.__DATABASE_URL,connect_args={"check_same_thread": False}
+        self.dataBaseCred.DATABASE_URL,connect_args={"check_same_thread": False}
         )
-        self.__metaData.create_all(engine)
+        self.dataBaseCred.metaData.create_all(engine)
         return self.__providerPackagesTable
 
 
@@ -37,7 +37,7 @@ class ProviderPackagesTable():
     def __getProviderPackagesTable(self):
         providerPackagesTable = sqlalchemy.Table(
         self.tableName,
-        self.__metaData,
+        self.dataBaseCred.metaData,
         sqlalchemy.Column(self.id_ColumnName,sqlalchemy.Integer,primary_key = True),
         sqlalchemy.Column(self.myProviderTableId_ColumnName,sqlalchemy.Integer),
         sqlalchemy.Column(self.price_ColumnName,sqlalchemy.Integer),
@@ -57,7 +57,7 @@ class ProviderPackagesTable():
         self.myProviderTableId_ColumnName,
         provider_id)
 
-        row = await self.__systemDatabase.fetch_all(query)
+        row = await self.dataBaseCred.systemDatabase.fetch_all(query)
         packagesList = []
         for i in row:
             asd = {self.id_ColumnName:i[0],
@@ -76,10 +76,10 @@ class ProviderPackagesTable():
            self.providerTableId_ColumnName,
            providerPackageModel.providerId,
         )
-        provider_record = await self.__systemDatabase.fetch_all(providerIdExistance_verification_query)
+        provider_record = await self.dataBaseCred.systemDatabase.fetch_all(providerIdExistance_verification_query)
         provider_packages = await self.getProviderPackageData(providerPackageModel.providerId)
 
-        if(len(provider_record) == 0):
+        if(len(provider_record) == 0): 
             raise HTTPException(
              status_code = 400,
              detail = "The provider is not exist"
@@ -95,12 +95,12 @@ class ProviderPackagesTable():
                 price = providerPackageModel.price,
                 size = providerPackageModel.sizeMB
             )
-            package_id = await self.__systemDatabase.execute(insert_package_query)
+            package_id = await self.dataBaseCred.systemDatabase.execute(insert_package_query)
             return await self.getProviderPackageData(providerPackageModel.providerId)
 
     # async def dropTable(self):
     #     query = "DROP TABLE providersPackages;"
-    #     asd = await self.__systemDatabase.execute(query)
+    #     asd = await self.dataBaseCred.systemDatabase.execute(query)
     #     return asd
 
     async def updatePackage(self,editProviderPackageModel:EditProviderPackageModel):
@@ -118,7 +118,7 @@ class ProviderPackagesTable():
 
             )
 
-        success = await self.__systemDatabase.execute(query)
+        success = await self.dataBaseCred.systemDatabase.execute(query)
         if(success == 1):
             return await self.getProviderPackageData(editProviderPackageModel.providerId)
         else:
@@ -137,7 +137,7 @@ class ProviderPackagesTable():
 
             )
 
-        success = await self.__systemDatabase.execute(query)
+        success = await self.dataBaseCred.systemDatabase.execute(query)
         if(success == 1):
             return await self.getProviderPackageData(deleteProviderPackageModel.providerId)
         else:

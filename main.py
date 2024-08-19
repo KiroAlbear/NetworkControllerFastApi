@@ -15,8 +15,10 @@ from Models.loginModel import LoginModel
 from Models.addProviderPackageModel import AddProviderPackageModel
 from Models.registerUserModel import RegisterUserModel
 from Models.registerProviderModel import RegisterProviderModel
-
+from DataBaseTables.providerConnectedUsers import ProviderConnectedUsersTable
+from Models.getConnectedUserModel import GetConnectedUserModel
 from Models.walletRechargeOrWithdrawModel import WalletRechargeOrWithdrawModel
+from Models.registerConnectedUserToProviderModel import RegisterConnectedUserToProviderModel
 import databases
 
 # from StripePayment.stripePayments import StripePayments
@@ -31,7 +33,10 @@ usersDatabase = databases.Database(DATABASE_URL)
 
 userTableFunctions =  UserTable()
 providerTableFunctions =  ProviderTable()
+providerConnectedUsersTableFunctions =  ProviderConnectedUsersTable()
+
 providerPackagesTableFunctions =  ProviderPackagesTable()
+
 
 # stripePayment = StripePayments()
 
@@ -39,6 +44,8 @@ providerPackagesTableFunctions =  ProviderPackagesTable()
 userTableFunctions.createAndReturnUserTable()
 providerTableFunctions.createAndReturnProviderTable()
 providerPackagesTableFunctions.createAndReturnProviderTable()
+providerConnectedUsersTableFunctions.createAndReturnProviderConnectedUsersTable()
+# providerConnectedUsersTableFunctions.deleteConnectedUsersTable()
 
 # metaData = sqlalchemy.MetaData()
 # register = sqlalchemy.Table(
@@ -104,8 +111,24 @@ async def pay(r:WalletRechargeOrWithdrawModel):
 ######################################################################################
 
 @app.post('/registerProvider')
-async def addUser(r:RegisterProviderModel):
+async def addProvicer(r:RegisterProviderModel):
     return await providerTableFunctions.insertNewProvider(r)
+
+@app.post('/getConnectedUsersToProvider')
+async def getConnectedUsersToProvider(r:GetConnectedUserModel):
+    return await providerConnectedUsersTableFunctions.getConnectedUsersToSpecificProvider(r)
+
+@app.post('/registerConnectedUsersToProvider')
+async def registerConnectedUsersToProvider(r:RegisterConnectedUserToProviderModel):
+    return await providerConnectedUsersTableFunctions.insertNewConnectedUserToProvider(r)
+
+@app.post('/deleteConnectedUsersToProviderTable')
+async def deleteConnectedUsersToProviderTable():
+    return await providerConnectedUsersTableFunctions.deleteConnectedUsersTable()
+
+@app.post('/createConnectedUsersToProviderTable')
+async def createConnectedUsersToProviderTable():
+    return  providerConnectedUsersTableFunctions.createAndReturnProviderConnectedUsersTable()
 
 
 @app.post('/loginProvider')

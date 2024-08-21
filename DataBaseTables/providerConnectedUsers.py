@@ -63,4 +63,7 @@ class ProviderConnectedUsersTable():
          list_of_string_mac_address = []
          for i in record:
             list_of_string_mac_address.append(i[1])
-         return ResponseObject(data=list_of_string_mac_address,message="",status=True)
+         json = {
+             "user_mac_address":list_of_string_mac_address
+         }
+         return ResponseObject(data=json,message="",status=True)

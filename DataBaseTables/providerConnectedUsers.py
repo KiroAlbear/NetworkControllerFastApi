@@ -56,8 +56,11 @@ class ProviderConnectedUsersTable():
     async def getConnectedUsersToSpecificProvider(self,getConnectedUserModel:GetConnectedUserModel):
          getConnectedUsersToProviderQuery = "SELECT * FROM {} WHERE {}= '{}'".format(
            self.providerConnectedUsersTableName,
-
            self.__provider_uuid_ColumnName,
            getConnectedUserModel.provider_uui,
         )
-         return await self.__dataBaseCred.systemDatabase.execute(getConnectedUsersToProviderQuery)
+         record = await self.__dataBaseCred.systemDatabase.fetch_all(getConnectedUsersToProviderQuery)
+         list_of_string_mac_address = []
+         for i in record:
+            list_of_string_mac_address.append(i[1])
+         return ResponseObject(data=list_of_string_mac_address,message="",status=True)
